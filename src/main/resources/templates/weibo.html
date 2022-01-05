@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+        body, html{width: 100%;height: 100%;margin:0;font-family:"微软雅黑";}
+        #allmap {height: 720px;width:100%;overflow: hidden;}
+        #result {width:100%;font-size:20px;}
+        dl,dt,dd,ul,li{
+            margin:0;
+            padding:0;
+            list-style:none;
+        }
+        dt{
+            font-size:14px;
+            font-family:"微软雅黑";
+            font-weight:bold;
+            border-bottom:1px dotted #000;
+            padding:5px 0 5px 5px;
+            margin:5px 0;
+        }
+        dd{
+            padding:5px 0 0 5px;
+        }
+        li{
+            line-height:28px;
+        }
+
+    </style>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=YcP5EukTHUoFR3oObxdfBHTfA3EUgHET"></script>
+    <script type="text/javascript" src="//api.map.baidu.com/library/SearchInfoWindow/1.5/src/SearchInfoWindow_min.js"></script>
+    <link rel="stylesheet" href="//api.map.baidu.com/library/SearchInfoWindow/1.5/src/SearchInfoWindow_min.css" />
+    <title>微博事件信息</title>
+</head>
+<body>
+<div id="allmap">
+</div>
+<div id="result">
+    <!--可随意添加个数-->
+    <input type="button" value="微博事件一" onclick="accident1();"/>
+    <input type="button" value="微博事件二" onclick="accident2()"/>
+    <input type="button" value="微博事件三" onclick="accident3()"/>
+    <input type="button" value="微博事件四" onclick="accident4()"/>
+    <input type="button" value="微博事件五" onclick="accident5()"/>
+    <input type="button" value="微博事件六" onclick="accident6()"/>
+    <input type="button" value="微博事件七" onclick="accident7()"/>
+    <input type="button" value="微博事件八" onclick="accident8()"/>
+    <input type="button" value="微博事件九" onclick="accident9()"/>
+    <input type="button" value="微博事件十" onclick="accident10()"/>
+</div>
+<script type="text/javascript">
+    // 百度地图API功能
+    var map = new BMap.Map('allmap');
+    var poi = new BMap.Point(116.307852,40.057031);
+    map.centerAndZoom(poi, 16);
+    map.enableScrollWheelZoom();
+
+    // 车辆行驶路线
+    const driving = new BMap.DrivingRoute(map, {
+        renderOptions:{
+            map: map,
+            autoViewport: true
+        }
+    });
+
+    //右键菜单
+    var menu = new BMap.ContextMenu();
+
+
+    // 添加右键菜单
+    const txtMenuItem = [
+        {
+            text: "驾车路线规划",
+            callback: function () {
+                var p1 = new BMap.Point(0,0);
+                var p2 = new BMap.Point(0,0);
+                var i = 0
+                map.addEventListener('click', function (e) {
+                    // alert('点击位置经纬度：' + e.latlng.lng + ',' + e.latlng.lat);
+                    if (i == 0) {
+                        p1 = new BMap.Point(e.point.lng,e.point.lat);
+                    } else if (i ==1) {
+                        p2 = new BMap.Point(e.point.lng,e.point.lat);
+                        driving.search(p1, p2);
+                    } else {
+                        return
+                    }
+                    i++;
+                });
+            }
+        }
+    ];
+    for (var i = 0; i < txtMenuItem.length; i++) {
+        menu.addItem(new BMap.MenuItem(txtMenuItem[i].text, txtMenuItem[i].callback, 100));
+    }
+    map.addContextMenu(menu);
+
+    // 创建事故图标
+    var myIcon = new BMap.Icon("/springboot-03/static/image/acc1.png", new BMap.Size(100, 100));
+
+
+    function accident1() {
+        /* 经纬度 可以自己手动改*/
+        var point = new BMap.Point(116.304, 39.925);
+        map.centerAndZoom(point, 15);
+        // 创建点标记
+        var marker = new BMap.Marker(point, {
+
+        });
+        map.addOverlay(marker);
+        // 创建信息窗口
+        var opts = {
+            width: 200,
+            height: 100,
+            title: '事故信息'
+        };
+        var infoWindow = new BMap.InfoWindow('详细情况:自己手动填写微博事故具体信息', opts);
+        map.openInfoWindow(infoWindow, point); // 开启信息窗口
+        marker.addEventListener('click', function () {
+            map.openInfoWindow(infoWindow, point); //
+        });
+    }
+    function accident2() {
+        var point = new BMap.Point(116.404, 39.925);
+        map.centerAndZoom(point, 15);
+        // 创建点标记
+        var marker = new BMap.Marker(point,{
+        });
+        map.addOverlay(marker);
+        // 创建信息窗口
+        var opts = {
+            width: 200,
+            height: 100,
+            title: '事故信息'
+        };
+        var infoWindow = new BMap.InfoWindow('详细情况:自己手动填写微博事故具体信息', opts);
+        map.openInfoWindow(infoWindow, point); // 开启信息窗口
+        marker.addEventListener('click', function () {
+            map.openInfoWindow(infoWindow, point); //
+        });
+    }
+    function accident3() {
+        var point = new BMap.Point(116.408, 40.001);
+        map.centerAndZoom(point, 15);
+        // 创建点标记
+        var marker = new BMap.Marker(point,{
+        });
+        map.addOverlay(marker);
+        // 创建信息窗口
+        var opts = {
+            width: 200,
+            height: 100,
+            title: '事故信息'
+        };
+        var infoWindow = new BMap.InfoWindow('详细情况:自己手动填写微博事故具体信息', opts);
+        map.openInfoWindow(infoWindow, point); // 开启信息窗口
+        marker.addEventListener('click', function () {
+            map.openInfoWindow(infoWindow, point); //
+        });
+    }
+    function accident4() {
+        var point = new BMap.Point(116.304, 39.856);
+        map.centerAndZoom(point, 15);
+        // 创建点标记
+        var marker = new BMap.Marker(point,{
+        });
+        map.addOverlay(marker);
+        // 创建信息窗口
+        var opts = {
+            width: 200,
+            height: 100,
+            title: '事故信息'
+        };
+        var infoWindow = new BMap.InfoWindow('详细情况:自己手动填写微博事故具体信息', opts);
+        map.openInfoWindow(infoWindow, point); // 开启信息窗口
+        marker.addEventListener('click', function () {
+            map.openInfoWindow(infoWindow, point); //
+        });
+    }
+    function accident5() {
+        var point = new BMap.Point(116.203, 39.853);
+        map.centerAndZoom(point, 15);
+        // 创建点标记
+        var marker = new BMap.Marker(point,{
+        });
+        map.addOverlay(marker);
+        // 创建信息窗口
+        var opts = {
+            width: 200,
+            height: 100,
+            title: '事故信息'
+        };
+        var infoWindow = new BMap.InfoWindow('详细情况:自己手动填写微博事故具体信息', opts);
+        map.openInfoWindow(infoWindow, point); // 开启信息窗口
+        marker.addEventListener('click', function () {
+            map.openInfoWindow(infoWindow, point);
+        });
+    }
+    function accident6() {
+        var point = new BMap.Point(116.504, 39.958);
+        map.centerAndZoom(point, 15);
+        // 创建点标记
+        var marker = new BMap.Marker(point,{
+        });
+        map.addOverlay(marker);
+        // 创建信息窗口
+        var opts = {
+            width: 200,
+            height: 100,
+            title: '事故信息'
+        };
+        var infoWindow = new BMap.InfoWindow('详细情况:自己手动填写微博事故具体信息', opts);
+        map.openInfoWindow(infoWindow, point); // 开启信息窗口
+        marker.addEventListener('click', function () {
+            map.openInfoWindow(infoWindow, point);
+        });
+    }
+    function accident7() {
+        var point = new BMap.Point(116.305, 39.725);
+        map.centerAndZoom(point, 15);
+        // 创建点标记
+        var marker = new BMap.Marker(point,{
+        });
+        map.addOverlay(marker);
+        // 创建信息窗口
+        var opts = {
+            width: 200,
+            height: 100,
+            title: '事故信息'
+        };
+        var infoWindow = new BMap.InfoWindow('详细情况:自己手动填写微博事故具体信息', opts);
+        map.openInfoWindow(infoWindow, point); // 开启信息窗口
+        marker.addEventListener('click', function () {
+            map.openInfoWindow(infoWindow, point);
+        });
+    }
+    function accident8() {
+        var point = new BMap.Point(117.001, 39.835);
+        map.centerAndZoom(point, 15);
+        // 创建点标记
+        var marker = new BMap.Marker(point,{
+        });
+        map.addOverlay(marker);
+        // 创建信息窗口
+        var opts = {
+            width: 200,
+            height: 100,
+            title: '事故信息'
+        };
+        var infoWindow = new BMap.InfoWindow('详细情况:自己手动填写微博事故具体信息', opts);
+        map.openInfoWindow(infoWindow, point); // 开启信息窗口
+        marker.addEventListener('click', function () {
+            map.openInfoWindow(infoWindow, point);
+        });
+    }
+    function accident9() {
+        var point = new BMap.Point(117.025, 39.708);
+        map.centerAndZoom(point, 15);
+        // 创建点标记
+        var marker = new BMap.Marker(point,{
+        });
+        map.addOverlay(marker);
+        // 创建信息窗口
+        var opts = {
+            width: 200,
+            height: 100,
+            title: '事故信息'
+        };
+        var infoWindow = new BMap.InfoWindow('详细情况:自己手动填写微博事故具体信息', opts);
+        map.openInfoWindow(infoWindow, point); // 开启信息窗口
+        marker.addEventListener('click', function () {
+            map.openInfoWindow(infoWindow, point);
+        });
+    }
+    function accident10() {
+        var point = new BMap.Point(116.002, 39.701);
+        map.centerAndZoom(point, 15);
+        // 创建点标记
+        var marker = new BMap.Marker(point,{
+        });
+        map.addOverlay(marker);
+        // 创建信息窗口
+        var opts = {
+            width: 200,
+            height: 100,
+            title: '事故信息'
+        };
+        var infoWindow = new BMap.InfoWindow('信息:自己手动填写事故信息', opts);
+        map.openInfoWindow(infoWindow, point); // 开启信息窗口
+        marker.addEventListener('click', function () {
+            map.openInfoWindow(infoWindow, point);
+        });
+    }
+
+</script>
+</body>
+</html>
+
+
+

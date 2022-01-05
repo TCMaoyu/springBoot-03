@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.whut.springboot03.dao.DataMapper">
+
+        <insert id="insertData" parameterType="data">
+            insert into didi(orderId,beginTime,endTime,beginLon,beginLat,endLon,endLat)
+            values(#{orderId},#{beginTime},#{endTime},#{beginLon},#{beginLat},#{endLon},#{endLat})
+        </insert>
+
+        <select id="getAll" resultType="data">
+            SELECT * FROM `didi` limit 100
+        </select>
+    
+        <select id="getDataByTime" parameterType="string" resultType="data">
+            select * from didi where beginTime &gt;= '${begin}%' and endTime &gt;= '${end}%' limit 100;
+        </select>
+    
+</mapper>

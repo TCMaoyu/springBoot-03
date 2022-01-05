@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>流量数据展示</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=YcP5EukTHUoFR3oObxdfBHTfA3EUgHET"></script>
+    <!--加载鼠标绘制工具-->
+    <script type="text/javascript" src="http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js"></script>
+    <link rel="stylesheet" href="http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css">
+    <!--加载计算工具-->
+    <script type="text/javascript" src="http://api.map.baidu.com/library/GeoUtils/1.2/src/GeoUtils_min.js"></script>
+    <!--加载检索信息窗口-->
+    <script type="text/javascript" src="http://api.map.baidu.com/library/SearchInfoWindow/1.4/src/SearchInfoWindow_min.js"></script>
+    <link rel="stylesheet" href="http://api.map.baidu.com/library/SearchInfoWindow/1.4/src/SearchInfoWindow_min.css">
+    <style>
+        body,
+        html,
+        #container {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            font-family: "微软雅黑";
+        }
+        .info {
+            z-index: 999;
+            width: auto;
+            min-width: 22rem;
+            padding: .75rem 1.25rem;
+            margin-left: 1.25rem;
+            position: fixed;
+            top: 1rem;
+            background-color: #fff;
+            border-radius: .25rem;
+            font-size: 14px;
+            color: #666;
+            box-shadow: 0 2px 6px 0 rgba(27, 142, 236, 0.5);
+        }
+        .dataTime {
+            z-index: 999;
+            width: auto;
+            min-width: 22rem;
+            padding: .75rem 1.25rem;
+            margin-left: 1.25rem;
+            position: fixed;
+            top: 3rem;
+            background-color: #fff;
+            border-radius: .25rem;
+            font-size: 14px;
+            color: #666;
+            box-shadow: 0 2px 6px 0 rgba(27, 142, 236, 0.5);
+        }
+        .btn-wrap {
+            z-index: 999;
+            width: 226px;
+            position: fixed;
+            bottom: 30px;
+            left: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: rgba(265, 265, 265, 0.9);
+            box-shadow: 0 2px 6px 0 rgba(27, 142, 236, 0.5);
+        }
+        .btn {
+            width: 100px;
+            height: 30px;
+            float: left;
+            background-color: #fff;
+            color: rgba(27, 142, 236, 1);
+            font-size: 14px;
+            border:1px solid rgba(27, 142, 236, 1);
+            border-radius: 5px;
+            margin: 0 5px 6px;
+            text-align: center;
+            line-height: 30px;
+        }
+        .btn:hover {
+            background-color: rgba(27, 142, 236, 0.8);
+            color: #fff;
+            cursor: pointer;
+        }
+        #r-result,#r-result table{
+            width:100%;
+        }
+
+        #result{
+            padding: 7px 10px;
+            position: fixed;
+            top: 10px;
+            left: 20px;
+            width: 450px;
+            background: #fff;
+            box-shadow: 0 2px 6px 0 rgba(27, 142, 236, 0.5);
+            border-radius: 7px;
+            z-index: 99;
+        }
+        #result input{
+            width:130px;
+            margin-right:10px;
+            height:25px;
+            border: 1px solid rgba(27, 142, 236, 0.5);
+            border-radius: 5px;
+        }
+        #result button {
+            border: 1px solid rgba(27, 142, 236, 0.5);
+            border-radius: 5px;
+            background: rgba(27, 142, 236, 0.5);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+<div class = "info">xx市车辆数据分布图</div>
+
+<div class="dataTime">
+    <form th:action="@{/SearchByTime}" >
+        请输入开始时间:<input type="test"  name = "beginTime" size="20" placeholder="格式:yyyy-MM-dd HH:mm:ss" style="width:150px;"/></br>
+        请输入结束时间:<input type="test"  name = "endTime" size="20" placeholder="格式:yyyy-MM-dd HH:mm:ss" style="width:150px;"/></br>
+        <input type = "submit" value="查询">
+    </form>
+</div>
+<div id="container" style="width: 100%; height:100%;"></div>
+<!--<div id="result">-->
+<!--    <input type="button" value="获取绘制的覆盖物个数" onclick="alert(overlays.length)">-->
+<!--    <input type="button" value="清除所有覆盖物" onclick="clearAll()">-->
+<!--</div>-->
+<!--<ul class="btn-wrap" style="z-index: 99;">-->
+<!--    <li class = "btn" onclick = "showText()">显示POI文字</li>-->
+<!--    <li class = "btn" onclick = "hideText()">隐藏POI文字</li>-->
+<!--    <li class = "btn" onclick = "showIcon()">显示POI的Icon</li>-->
+<!--    <li class = "btn" onclick = "hideIcon()">隐藏POI的Icon</li>-->
+<!--</ul>-->
+
+<script th:inline="javascript">
+
+    // 百度地图API功能
+    var map = new BMap.Map('container');
+    var poi = new BMap.Point(104.067923463,30.6799428454);
+    map.centerAndZoom(poi, 15);
+    map.enableScrollWheelZoom();
+
+    // 得到前端传递过来的数据
+    var allData = [[${allData}]];
+
+    for (let i = 0; i < allData.length; i++) {
+        // 创建标记点
+        const p1 = new BMap.Point(allData[i].beginLon, allData[i].beginLat)
+        const p2 = new BMap.Point(allData[i].endLon, allData[i].endLat)
+
+        // 创建小车图标
+        var myIcon = new BMap.Icon("/image/car.png", new BMap.Size(50, 50));
+
+        // 创建标注
+        const marker1 = new BMap.Marker(p1, {
+            enableDragging: true,     // 设置标记点可以移动
+            // icon: myIcon
+        });
+        // 创建标注
+        const marker2 = new BMap.Marker(p2, {
+            enableDragging: true,
+            icon: myIcon
+        });
+
+        map.addOverlay(marker1);              // 将标注添加到地图中
+        map.addOverlay(marker2);              // 将标注添加到地图中
+
+        // 创建窗口信息
+        const opts = {
+            width : 200,     // 信息窗口宽度
+            height: 100,     // 信息窗口高度
+            title: "汽车当前位置信息"
+        }
+
+        const infoWindow1 = new BMap.InfoWindow("经度:"+allData[i].beginLon+"\n"+"纬度:"+allData[i].beginLat, opts);  // 创建信息窗口对象
+        const infoWindow2 = new BMap.InfoWindow("经度:"+allData[i].endLon+"\n"+"纬度:"+allData[i].endLat, opts);  // 创建信息窗口对象
+        marker1.addEventListener("click", function(){
+            map.openInfoWindow(infoWindow1, p1); //开启信息窗口
+        });
+        marker2.addEventListener("click", function(){
+            map.openInfoWindow(infoWindow2, p2); //开启信息窗口
+        });
+    }
+
+
+    // 车辆行驶路线
+    const driving = new BMap.DrivingRoute(map, {
+        renderOptions:{
+            map: map,
+            autoViewport: true
+        }
+    });
+    // 步行导航路线
+    const walking = new BMap.WalkingRoute(map, {
+        renderOptions:{
+            map: map,
+            panel: "r-result",
+            autoViewport: true
+        }
+    });
+    // 骑行导航路线
+    // const riding = new BMap.RidingRoute(map, {
+    //     renderOptions: {
+    //         map: map,
+    //         autoViewport: true
+    //     }
+    // });
+
+
+
+    //右键菜单
+    var menu = new BMap.ContextMenu();
+    var item1=new BMap.MenuItem("撤销" ,function(location){
+        map.removeOverlay(overlays[overlays.length-1]);
+        overlays.splice(overlays.length-1,1)
+    });
+
+    menu.addItem(item1);
+
+    // 添加右键菜单
+    const txtMenuItem = [
+        {
+            text: "驾车路线规划",
+            callback: function () {
+                var p1 = new BMap.Point(0,0);
+                var p2 = new BMap.Point(0,0);
+                var i = 0
+                map.addEventListener('click', function (e) {
+                    // alert('点击位置经纬度：' + e.latlng.lng + ',' + e.latlng.lat);
+                    if (i == 0) {
+                        p1 = new BMap.Point(e.point.lng,e.point.lat);
+                    } else if (i ==1) {
+                        p2 = new BMap.Point(e.point.lng,e.point.lat);
+                        driving.search(p1, p2);
+                    } else {
+                        return
+                    }
+                    i++;
+                });
+            }
+        }, {
+            text: '步行路线规划',
+            callback: function () {
+                var p1 = new BMap.Point(0,0);
+                var p2 = new BMap.Point(0,0);
+                var i = 0
+                map.addEventListener('click', function (e) {
+                    if (i == 0) {
+                        p1 = new BMap.Point(e.point.lng,e.point.lat);
+                    } else if (i ==1) {
+                        p2 = new BMap.Point(e.point.lng,e.point.lat);
+                        driving.search(p1, p2);
+                    } else {
+                        return
+                    }
+                    i++;
+                });
+            }
+        },
+        // {
+        //     text: '骑行路线规划',
+        //     callback: function () {
+        //         var p1 = new BMap.Point(0,0);
+        //         var p2 = new BMap.Point(0,0);
+        //         var i = 0
+        //         map.addEventListener('click', function (e) {
+        //             if (i == 0) {
+        //                 p1 = new BMap.Point(e.point.lng,e.point.lat);
+        //             } else if (i ==1) {
+        //                 p2 = new BMap.Point(e.point.lng,e.point.lat);
+        //                 riding.search(p1, p2)
+        //             } else {
+        //                 return
+        //             }
+        //             i++;
+        //         });
+        //     }
+        // },
+        {
+            text: "查看地区经纬度",
+            callback: function () {
+                var i = 0;
+                map.addEventListener('click', function (e) {
+                    if (i == 0) {
+                        alert('点击位置经纬度：' + e.point.lng + ',' + e.point.lat);
+                    } else {
+                        return
+                    }
+                    i++;
+                });
+            }
+        },
+    ];
+    for (var i = 0; i < txtMenuItem.length; i++) {
+        menu.addItem(new BMap.MenuItem(txtMenuItem[i].text, txtMenuItem[i].callback, 100));
+    }
+    map.addContextMenu(menu);
+
+
+    var overlays = [];
+    var overlaycomplete = function(e){
+        overlays.push(e.overlay);
+        //获取多边形端点坐标
+        if (e.drawingMode == BMAP_DRAWING_RECTANGLE ) {
+            var arr = new Array();
+            arr[0] = e.overlay.getPath()[0].lng;
+            arr[1] = e.overlay.getPath()[0].lat;
+
+            arr[2] = e.overlay.getPath()[1].lng;
+            arr[3] = e.overlay.getPath()[1].lat;
+
+            arr[4] = e.overlay.getPath()[2].lng;
+            arr[5] = e.overlay.getPath()[2].lat;
+
+            arr[6] = e.overlay.getPath()[3].lng;
+            arr[7] = e.overlay.getPath()[3].lat;
+
+            console.log(arr[0],arr[1])
+            console.log(arr[4],arr[5])
+            //统计这个区域的交通量
+            var count = 0;
+
+            for (let i = 0; i < allData.length; i++) {
+                if (allData[i].beginLon >= arr[0] && allData[i].beginLon <= arr[4] &&
+                    allData[i].beginLat <=arr[1] && allData[i].beginLat >= arr[5]) {
+                    count = count +1;
+                    console.log(allData[i].beginLon,allData[i].beginLat,count,i)
+                }
+                if (allData[i].endLon >= arr[0] && allData[i].endLon <= arr[4] &&
+                    allData[i].endLat <=arr[1] && allData[i].endLat >= arr[5]) {
+                    count = count+1
+                    console.log(allData[i].endLon,allData[i].endLat,count,i)
+                }
+            }
+            alert("您所画区域的车流量为:"+count);
+        }
+        //关闭绘制模式
+        drawingManager.close();
+    };
+    var styleOptions = {
+        strokeColor:"red",    //边线颜色。
+        fillColor:"red",      //填充颜色。当参数为空时，圆形将没有填充效果。
+        strokeWeight: 3,       //边线的宽度，以像素为单位。
+        strokeOpacity: 0.8,    //边线透明度，取值范围0 - 1。
+        fillOpacity: 0.6,      //填充的透明度，取值范围0 - 1。
+        strokeStyle: 'solid' //边线的样式，solid或dashed。
+    }
+    //实例化鼠标绘制工具
+    var drawingManager = new BMapLib.DrawingManager(map, {
+        isOpen: false, //是否开启绘制模式
+        enableDrawingTool: true, //是否显示工具栏
+        drawingToolOptions: {
+            anchor: BMAP_ANCHOR_TOP_RIGHT, //位置
+            offset: new BMap.Size(5, 5), //偏离值
+            drawingModes: [//画覆盖物工具栏上显示的可选项
+                //BMAP_DRAWING_MARKER,
+                //BMAP_DRAWING_CIRCLE,
+                //BMAP_DRAWING_POLYLINE,
+                //BMAP_DRAWING_POLYGON,
+                BMAP_DRAWING_RECTANGLE
+            ]
+        },
+        circleOptions: styleOptions, //圆的样式
+        polylineOptions: styleOptions, //线的样式
+        polygonOptions: styleOptions, //多边形的样式
+        rectangleOptions: styleOptions //矩形的样式
+    });
+    //添加鼠标绘制工具监听事件，用于获取绘制结果
+    drawingManager.addEventListener('overlaycomplete', overlaycomplete);
+    function clearAll() {
+        for(var i = 0; i < overlays.length; i++){
+            map.removeOverlay(overlays[i]);
+        }
+        overlays.length = 0
+    }
+
+
+    function showText() {
+        map.setDisplayOptions({
+            poiText: true
+        })
+    }
+    function hideText() {
+        map.setDisplayOptions({
+            poiText: false
+        })
+    }
+    function showIcon() {
+        map.setDisplayOptions({
+            poiIcon: true
+        })
+    }
+    function hideIcon() {
+        map.setDisplayOptions({
+            poiIcon: false
+        })
+    }
+
+</script>
+</body>
+</html>
